@@ -1,3 +1,10 @@
+/*
+    argv[1] = broj elemenata u nizu
+    argv[2] = broj parcijalnih suma koje je potrebno izracunati
+    argv[3] = broj radnih dretvi
+    argv[4] = ime datoteke koja sadrzi niz
+    argv[5] = ime datoteke u koju spremamo parcijalne sume
+*/
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -9,6 +16,7 @@
 
 
 int N, P, PP, K; // N = broj pocetnih parcijalnih suma, P = broj radnih dretvi
+// K = gornje cijelo od log_2{N}, PP = 2^K
 std::vector<double> A;
 std::vector<double> scan;
 std::vector<double> X, Y;
@@ -46,6 +54,7 @@ void *block_scan(void *threadId){
     pthread_barrier_wait(&barrier1);
     
     m = PP/2;
+    step = 1;
     if(tid < m){
         Y[2*tid+1] = X[2*tid] + X[2*tid+1];
     }
@@ -73,7 +82,6 @@ void *block_scan(void *threadId){
             }
         }
         pthread_barrier_wait(&(barriers2[j]));
-        ++i;
     }
 
     m = 2*m;
@@ -101,21 +109,29 @@ void *block_scan(void *threadId){
 
 
 
-int main(void){
-    int M; // nema vaznosti ?? ali ovo je duljina niza A u datoteci (nama treba samo prvih N elemenata)
+int main(int argc, char *argv[]){
+    if(argc != 6){
+        std::cout << "Krivi broj argumenata komandne linije";
+    }
+
+    int M; // (ne koristi se) duljina niza A u datoteci (nama treba samo prvih N elemenata)
     std::string F, G; // A u datoteci F, rezultat u G 
     int i, j, k = 0, m, rc;
     //void *status;
     std::ifstream if1;
     std::ofstream out;
 
-
-    std::cin >> N >> M >> P >> F >> G;
+    M = atoi(argv[1]);
+    N = atoi(argv[2]);
+    P = atoi(argv[3]);
+    F = std::string(argv[4]);
+    G = std::string(argv[5]);
 
     A.resize(N);
     scan.resize(N);
-    j = P;
-    for(PP = 1; j > 0; j >>= 1){
+    j = P-1;
+    PP = 1;
+    for(; j > 0; j >>= 1){
         PP <<= 1;
         ++k;
     }
@@ -162,7 +178,6 @@ int main(void){
             exit(-1);
         }
     }
-
 
     // output
     out.open(G);
