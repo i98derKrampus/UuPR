@@ -112,6 +112,7 @@ void *block_scan(void *threadId){
 int main(int argc, char *argv[]){
     if(argc != 6){
         std::cout << "Krivi broj argumenata komandne linije";
+        return 0;
     }
 
     int M; // (ne koristi se) duljina niza A u datoteci (nama treba samo prvih N elemenata)
